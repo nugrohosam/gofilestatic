@@ -1,13 +1,11 @@
 package http
 
 import (
-	"time"
-
 	sentrygin "github.com/getsentry/sentry-go/gin"
 
-	"github.com/cnjack/throttle"
 	"github.com/gin-gonic/gin"
-	"github.com/nugrohosam/gosampleapi/services/http/exceptions"
+	"github.com/nugrohosam/gofilestatic/services/http/controllers"
+	"github.com/nugrohosam/gofilestatic/services/http/exceptions"
 	"github.com/spf13/viper"
 )
 
@@ -36,17 +34,15 @@ func Prepare() {
 		Routes.Use(exceptions.Recovery500())
 	}
 
-	rateLimiterCount := viper.GetUint64("rate-limiter.count")
-	rateLimiterTime := viper.GetInt("rate-limiter.time-in-minutes")
-	Routes.Use(throttle.Policy(&throttle.Quota{
-		Limit:  rateLimiterCount,
-		Within: time.Duration(rateLimiterTime) * time.Minute,
-	}))
-
-	Routes.Static("/assets", "./assets")
-	Routes.Static("/web", "./web")
-
 	Routes.Use(sentrygin.New(sentrygin.Options{
 		Repanic: true,
 	}))
+
+	v1 := Routes.Group("v1")
+
+	image := v1.Group("image")
+	{
+		image.POST("/", controllers.ImageHandlerUpload())
+		image.GET("very-small/:file", controllers.ImageHandlerVerySmall())
+	}
 }
