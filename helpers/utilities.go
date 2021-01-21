@@ -11,6 +11,7 @@ import (
 	"os"
 	"path/filepath"
 
+	"github.com/google/uuid"
 	"github.com/spf13/viper"
 )
 
@@ -85,7 +86,7 @@ func Decrypt(encryptedString string, keyString string) (decryptedString string) 
 }
 
 // GetFileFromStorage ..
-func GetFileFromStorage(filepath string) ([]byte, error) {
+func GetFileFromStorage(filePath string) ([]byte, error) {
 
 	storageUse := viper.GetString("storage.driver")
 	rootPathUse := viper.GetString("storage.root-path")
@@ -94,7 +95,7 @@ func GetFileFromStorage(filepath string) ([]byte, error) {
 
 	switch storageUse {
 	case StorageLocal:
-		path := SetPath(rootPathUse, filepath)
+		path := SetPath(rootPathUse, filePath)
 		data, err = ioutil.ReadFile(path)
 	case StorageGoogle:
 	case StorageAws:
@@ -104,7 +105,7 @@ func GetFileFromStorage(filepath string) ([]byte, error) {
 }
 
 // DuplicateToCache ..
-func DuplicateToCache(fileToCopy []byte, filepath string) error {
+func DuplicateToCache(fileToCopy []byte, filePath string) error {
 
 	storageUse := viper.GetString("cache.driver")
 	rootPathUse := viper.GetString("cache.root-path")
@@ -112,7 +113,7 @@ func DuplicateToCache(fileToCopy []byte, filepath string) error {
 
 	switch storageUse {
 	case StorageLocal:
-		path := SetPath(rootPathUse, filepath)
+		path := SetPath(rootPathUse, filePath)
 		err = ioutil.WriteFile(path, fileToCopy, os.ModeTemporary)
 	case StorageGoogle:
 	case StorageAws:
@@ -122,7 +123,7 @@ func DuplicateToCache(fileToCopy []byte, filepath string) error {
 }
 
 // GetFileFromCache ..
-func GetFileFromCache(filepath string) ([]byte, error) {
+func GetFileFromCache(filePath string) ([]byte, error) {
 
 	storageUse := viper.GetString("cache.driver")
 	rootPathUse := viper.GetString("cache.root-path")
@@ -131,7 +132,7 @@ func GetFileFromCache(filepath string) ([]byte, error) {
 
 	switch storageUse {
 	case StorageLocal:
-		path := SetPath(rootPathUse, filepath)
+		path := SetPath(rootPathUse, filePath)
 		data, err = ioutil.ReadFile(path)
 	case StorageGoogle:
 	case StorageAws:
@@ -149,4 +150,41 @@ func SetPath(paths ...string) string {
 	}
 
 	return filepath.ToSlash(setPath)
+}
+
+// StoreImage ..
+func StoreImage(file []byte, filePath string) error {
+
+	storageUse := viper.GetString("image.driver")
+	rootPathUse := viper.GetString("image.root-path")
+	var err error
+
+	switch storageUse {
+	case StorageLocal:
+		path := SetPath(rootPathUse, filePath)
+		err = ioutil.WriteFile(path, file, 0755)
+	case StorageGoogle:
+	case StorageAws:
+	}
+
+	return err
+}
+
+// GetSecret ..
+func GetSecret(typeFile, ext string) string {
+	secretImage := viper.GetString("file-secret." + typeFile + "." + ext)
+	if secretImage == "" {
+		secretImage = viper.GetString("file-secret.other")
+	}
+
+	return secretImage
+}
+
+func MakeNameFile(typeFile, ext string) string {
+
+	secretFile := GetSecret("image", ext)
+
+	uuidRandomString := uuid.MustParse(secretFile).String()
+
+	return uuidRandomString + "." + ext
 }

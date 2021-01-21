@@ -2,6 +2,9 @@ package controllers
 
 import (
 	"io/ioutil"
+	"os"
+
+	"github.com/nugrohosam/gofilestatic/usecases"
 
 	"github.com/adelowo/filer/validator"
 	"github.com/gin-gonic/gin"
@@ -16,7 +19,13 @@ func ImageHandlerUpload() gin.HandlerFunc {
 			return
 		}
 
+		filePath, isOk := c.GetPostForm("filepath")
+		if isOk {
+			return
+		}
+
 		fileTemp, err := ioutil.TempFile("", file.Filename)
+		defer os.Remove(fileTemp.Name())
 
 		if err != nil {
 			panic("An error occurred while trying to create a temporary file")
@@ -38,6 +47,9 @@ func ImageHandlerUpload() gin.HandlerFunc {
 			c.JSON(400, nil)
 			return
 		}
+
+		fileData, err := ioutil.ReadFile(file.Filename)
+		usecases.StoreImage(fileData, filePath, file.Filename)
 	}
 }
 

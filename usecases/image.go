@@ -5,35 +5,44 @@ import (
 	"strings"
 
 	"github.com/nugrohosam/gofilestatic/helpers"
+	"github.com/nugrohosam/gofilestatic/services/infrastructure"
 	"github.com/spf13/viper"
 )
 
+// StoreImage ..
+func StoreImage(file []byte, filePathRequsted, fileName string) error {
+	ext := filepath.Ext(fileName)
+	randomFileName := helpers.MakeNameFile(filePathRequsted, ext)
+	filePath := helpers.SetPath(filePathRequsted, randomFileName)
+
+	secretImage := helpers.GetSecret("image", ext)
+
+	helpers.Encrypt(filePath, secretImage)
+	return helpers.StoreImage(file, filePath)
+}
+
 // GetImageSmall ..
-func GetImageSmall(file string) ([]byte, error) {
+func GetImageSmall(fileNameEncrypted string) ([]byte, error) {
 
 	prefixCachePath := viper.GetString("quality.image.very-small.prefix")
 
 	var fileData []byte
 	var err error
-	fileData, err = helpers.GetFileFromCache(prefixCachePath + file)
+	fileData, err = helpers.GetFileFromCache(prefixCachePath + fileNameEncrypted)
 	if err == nil {
 		return fileData, nil
 	}
 
-	ext := filepath.Ext(file)
-	filename := strings.ReplaceAll(file, ext, "")
+	ext := filepath.Ext(fileNameEncrypted)
+	filename := strings.ReplaceAll(fileNameEncrypted, ext, "")
 
-	secretImage := viper.GetString("file-secret.image." + ext)
-	if secretImage == "" {
-		secretImage = viper.GetString("file-secret.other")
-	}
+	secretImage := helpers.GetSecret("image", ext)
 
 	path := helpers.Decrypt(filename, secretImage)
 
 	fileorgin := path + "." + ext
-	fileData, err = helpers.GetFileFromStorage(fileorgin)
-	fileCache := prefixCachePath + file
-	err = helpers.DuplicateToCache(fileData, fileCache)
+	filePathCache := prefixCachePath + fileNameEncrypted
+	infrastructure.MakeImageVerySmall(fileorgin, filePathCache)
 
 	return fileData, err
 }
