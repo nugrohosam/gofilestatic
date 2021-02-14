@@ -16,7 +16,7 @@ func ImageHandlerUpload() gin.HandlerFunc {
 			panic(err.Error())
 		}
 
-		dataBytes, err := helpers.ReadFileRequest(imageUpload.File)
+		_, err := helpers.ReadFileRequest(imageUpload.File)
 	}
 }
 
