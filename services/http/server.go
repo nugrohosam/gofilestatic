@@ -42,7 +42,7 @@ func Prepare() {
 
 	image := v1.Group("image")
 	{
-		image.POST("/", controllers.ImageHandlerUpload())
+		image.POST("", controllers.ImageHandlerUpload())
 		image.GET("very-small/:file", controllers.ImageHandlerVerySmall())
 	}
 }

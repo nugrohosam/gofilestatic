@@ -8,6 +8,8 @@ import (
 	"fmt"
 	"io"
 	"io/ioutil"
+	mathRand "math/rand"
+	"mime/multipart"
 	"os"
 	"path/filepath"
 
@@ -180,11 +182,69 @@ func GetSecret(typeFile, ext string) string {
 	return secretImage
 }
 
+// RandomString ..
+func RandomString(n int) string {
+	letterRunes := []rune("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ")
+
+	b := make([]rune, n)
+	for i := range b {
+		b[i] = letterRunes[mathRand.Intn(len(letterRunes))]
+	}
+
+	return string(b)
+}
+
+// ReadFileRequest ..
+func ReadFileRequest(file *multipart.FileHeader) ([]byte, error) {
+	src, err := file.Open()
+	if err != nil {
+		return nil, err
+	}
+	defer src.Close()
+
+	dst := viper.GetString("temp.root-path") + "/" + RandomString(5)
+	os.Mkdir(dst, 0755)
+
+	filePath := dst + "/" + file.Filename
+
+	out, err := os.Create(filePath)
+	if err != nil {
+		return nil, err
+	}
+	defer out.Close()
+
+	_, err = io.Copy(out, src)
+
+	return ioutil.ReadFile(filePath)
+}
+
+// SaveFileRequest ..
+func SaveFileRequest(file *multipart.FileHeader) (string, error) {
+	src, err := file.Open()
+	if err != nil {
+		return "", err
+	}
+	defer src.Close()
+
+	dst := viper.GetString("temp.root-path") + "/" + RandomString(5)
+	os.Mkdir(dst, 0755)
+
+	filePath := dst + "/" + file.Filename
+
+	out, err := os.Create(filePath)
+	if err != nil {
+		return "", err
+	}
+	defer out.Close()
+
+	_, err = io.Copy(out, src)
+
+	return filePath, nil
+}
+
+// MakeNameFile ..
 func MakeNameFile(typeFile, ext string) string {
-
 	secretFile := GetSecret("image", ext)
-
 	uuidRandomString := uuid.MustParse(secretFile).String()
-
 	return uuidRandomString + "." + ext
 }

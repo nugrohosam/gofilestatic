@@ -8,19 +8,19 @@ import (
 	"gopkg.in/gographics/imagick.v3/imagick"
 )
 
-// MakeVerySmall ..
+// MakeImageVerySmall ..
 func MakeImageVerySmall(filepath, filepathDestination string) {
 	quality := viper.GetUint("quality.image.very-small.compression")
 	CreateImage(quality, filepath, filepathDestination)
 }
 
-// MakeSmall ..
+// MakeImageSmall ..
 func MakeImageSmall(filepath, filepathDestination string) {
 	quality := viper.GetUint("quality.image.small.compression")
 	CreateImage(quality, filepath, filepathDestination)
 }
 
-// MakeSmall ..
+// MakeImageMedium ..
 func MakeImageMedium(filepath, filepathDestination string) {
 	quality := viper.GetUint("quality.image.medium.compression")
 	CreateImage(quality, filepath, filepathDestination)
@@ -39,7 +39,7 @@ func CreateImage(quality uint, filepath, filepathDestination string) {
 	ioutil.WriteFile(filepathDestination, fileDataCompressed, 0744)
 }
 
-// CreateImage ..
+// ConvertImage ..
 func ConvertImage(imageType, filePath string) error {
 	fileTmp, err := ioutil.TempFile("", filePath)
 	if err != nil {
@@ -48,7 +48,6 @@ func ConvertImage(imageType, filePath string) error {
 
 	defer os.Remove(fileTmp.Name())
 	fileDataCompressed := fileTmp.Name() + "." + imageType
-
 	_, err = imagick.ConvertImageCommand([]string{"convert", fileTmp.Name(), fileDataCompressed})
 
 	return err
