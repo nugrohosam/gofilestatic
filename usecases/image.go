@@ -61,8 +61,6 @@ func getImage(quality, fileNameEncrypted string) (string, error) {
 		_, err = helpers.GetFileFromCache(filePathCache)
 		if err == nil {
 			return fileFullPathCache, nil
-		} else {
-			err = nil
 		}
 
 		ext := filepath.Ext(fileNameEncrypted)
@@ -82,7 +80,7 @@ func getImage(quality, fileNameEncrypted string) (string, error) {
 		case VeryLargeQuality:
 			infrastructure.MakeImageVeryLarge(fileData, fileFullPathCache)
 		default:
-			return "", nil
+			return "", err
 		}
 	}
 }
