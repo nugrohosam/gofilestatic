@@ -167,6 +167,24 @@ func StoragePath(filePath string) string {
 	return path
 }
 
+// CachePath ..
+func CachePath(filePath string) string {
+
+	storageUse := viper.GetString("cache.driver")
+	rootPathUse := viper.GetString("cache.root-path")
+
+	var path string
+
+	switch storageUse {
+	case StorageLocal:
+		path = SetPath(rootPathUse, filePath)
+	case StorageGoogle:
+	case StorageAws:
+	}
+
+	return path
+}
+
 // StoreFile ..
 func StoreFile(file []byte, filePath string) error {
 
@@ -187,6 +205,11 @@ func StoreFile(file []byte, filePath string) error {
 	}
 
 	return err
+}
+
+// StorageMove ..
+func StorageMove(oldLocation, newLocation string) error {
+	return os.Rename(oldLocation, newLocation)
 }
 
 // GetSecret ..

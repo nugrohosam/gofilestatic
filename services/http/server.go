@@ -48,9 +48,9 @@ func Prepare() {
 
 	document := v1.Group("document")
 	{
-		document.GET(":file", controllers.DocumentHandlerGetFile())
+		document.GET("in-image/:file", controllers.DocumentHandlerInImage())
+		document.GET("in-pdf/:file", controllers.DocumentHandlerInPdf())
+		document.GET("original/:file", controllers.DocumentHandlerGetFile())
 		document.POST("", controllers.DocumentHandlerUpload())
-
-		document.POST("pdf-in-image", controllers.DocumentHandlerPdfInImage())
 	}
 }

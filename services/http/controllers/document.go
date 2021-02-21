@@ -37,21 +37,21 @@ func DocumentHandlerUpload() gin.HandlerFunc {
 	}
 }
 
-// DocumentHandlerPdfInImage is use
-func DocumentHandlerPdfInImage() gin.HandlerFunc {
+// DocumentHandlerInImage is use
+func DocumentHandlerInImage() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		file := c.Param("file")
-		filePath, _ := usecases.GetFilePdfInImage(file, "document")
+		filePath, _ := usecases.GetDocumentInImage(file)
 
 		c.File(filePath)
 	}
 }
 
-// DocumentHandlerDocInPdf is use
-func DocumentHandlerDocInPdf() gin.HandlerFunc {
+// DocumentHandlerInPdf is use
+func DocumentHandlerInPdf() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		file := c.Param("file")
-		filePath, _ := usecases.GetFilePdfInImage(file, "document")
+		filePath, _ := usecases.GetDocumentInPdf(file)
 
 		c.File(filePath)
 	}

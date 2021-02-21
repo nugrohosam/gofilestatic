@@ -50,13 +50,12 @@ func GetImageVeryLarge(fileNameEncrypted string) (string, error) {
 
 func getImage(quality, fileNameEncrypted string) (string, error) {
 
-	cacheRootPath := viper.GetString("cache.root-path")
 	prefixCachePath := viper.GetString("quality.image." + quality + ".prefix")
 	var err error
 
 	for {
 		filePathCache := prefixCachePath + fileNameEncrypted
-		fileFullPathCache := helpers.SetPath(cacheRootPath, filePathCache)
+		fileFullPathCache := helpers.CachePath(filePathCache)
 
 		_, err = helpers.GetFileFromCache(filePathCache)
 		if err == nil {
