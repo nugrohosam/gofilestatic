@@ -39,7 +39,7 @@ func GetDocumentInPdf(fileNameEncrypted string) (string, error) {
 		storageFilePath := helpers.StoragePath(pathFile)
 		folderCache := helpers.CachePath("")
 
-		err = infrastructure.Convert("pdf", folderCache, storageFilePath)
+		err = infrastructure.CovertDocument("pdf", folderCache, storageFilePath)
 
 		fileName := filepath.Base(pathFile)
 		fileNameNewInPdf := strings.ReplaceAll(fileName, extWithDots, "") + ".pdf"

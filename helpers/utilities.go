@@ -222,6 +222,17 @@ func GetSecret(typeFile, ext string) string {
 	return secretImage
 }
 
+// InArray ..
+func InArray(str string, s []string) bool {
+	for _, value := range s {
+		if fmt.Sprintf("%v", value) == str {
+			return true
+		}
+	}
+
+	return false
+}
+
 // GetFileDataStorage ..
 func GetFileDataStorage(filePath string) []byte {
 
