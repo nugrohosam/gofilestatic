@@ -149,8 +149,26 @@ func SetPath(paths ...string) string {
 	return strings.Join(paths, "/")
 }
 
-// StoreImage ..
-func StoreImage(file []byte, filePath string) error {
+// StoragePath ..
+func StoragePath(filePath string) string {
+
+	storageUse := viper.GetString("storage.driver")
+	rootPathUse := viper.GetString("storage.root-path")
+
+	var path string
+
+	switch storageUse {
+	case StorageLocal:
+		path = SetPath(rootPathUse, filePath)
+	case StorageGoogle:
+	case StorageAws:
+	}
+
+	return path
+}
+
+// StoreFile ..
+func StoreFile(file []byte, filePath string) error {
 
 	storageUse := viper.GetString("storage.driver")
 	rootPathUse := viper.GetString("storage.root-path")

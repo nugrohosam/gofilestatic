@@ -23,24 +23,6 @@ const SmallQuality = "small"
 // VerySmallQuality ..
 const VerySmallQuality = "very-small"
 
-// StoreImage ..
-func StoreImage(file []byte, filePathRequsted, fileName string) string {
-	ext := filepath.Ext(fileName)
-	randomFileName := helpers.MakeNameFile(filePathRequsted, ext)
-	filePath := helpers.SetPath(filePathRequsted, randomFileName)
-
-	secretImage := helpers.GetSecret("image", ext)
-
-	encrypted := helpers.Encrypt(filePath, secretImage)
-	if err := helpers.StoreImage(file, filePath); err != nil {
-		panic(err)
-	}
-
-	fileNameEncrypted := encrypted + ext
-	return fileNameEncrypted
-
-}
-
 // GetImageVerySmall ..
 func GetImageVerySmall(fileNameEncrypted string) (string, error) {
 	return getImage(VerySmallQuality, fileNameEncrypted)

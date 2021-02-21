@@ -1,6 +1,8 @@
 package controllers
 
 import (
+	"net/http"
+
 	"github.com/nugrohosam/gofilestatic/helpers"
 	requests "github.com/nugrohosam/gofilestatic/services/http/requests/v1"
 	"github.com/nugrohosam/gofilestatic/usecases"
@@ -18,7 +20,7 @@ func ImageHandlerUpload() gin.HandlerFunc {
 		}
 
 		imageBuff, err := helpers.ReadFileRequest(imageUpload.File)
-		filePath := usecases.StoreImage(imageBuff, imageUpload.FilePath, imageUpload.File.Filename)
+		filePath := usecases.StoreFile(imageBuff, imageUpload.FilePath, imageUpload.File.Filename, "image")
 
 		c.JSON(200, gin.H{
 			"status":    true,
@@ -27,65 +29,48 @@ func ImageHandlerUpload() gin.HandlerFunc {
 	}
 }
 
+// LargeQuality ..
+const LargeQuality = "large"
+
+// LargeQuality ..
+const Original = "original"
+
+// VeryLargeQuality ..
+const VeryLargeQuality = "very-large"
+
+// MediumQuality ..
+const MediumQuality = "medium"
+
+// SmallQuality ..
+const SmallQuality = "small"
+
+// VerySmallQuality ..
+const VerySmallQuality = "very-small"
+
 // ImageHandlerVerySmall is use
 func ImageHandlerVerySmall() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		file := c.Param("file")
-		filePath, err := usecases.GetImageVerySmall(file)
-		if err != nil {
-			panic(err)
-		}
+		quality := c.Param("quality")
 
-		c.File(filePath)
-	}
-}
+		var filePath string
 
-// ImageHandlerSmall is use
-func ImageHandlerSmall() gin.HandlerFunc {
-	return func(c *gin.Context) {
-		file := c.Param("file")
-		filePath, err := usecases.GetImageSmall(file)
-		if err != nil {
-			panic(err)
-		}
-
-		c.File(filePath)
-	}
-}
-
-// ImageHandlerMedium is use
-func ImageHandlerMedium() gin.HandlerFunc {
-	return func(c *gin.Context) {
-		file := c.Param("file")
-		filePath, err := usecases.GetImageMedium(file)
-		if err != nil {
-			panic(err)
-		}
-
-		c.File(filePath)
-	}
-}
-
-// ImageHandlerLarge is use
-func ImageHandlerLarge() gin.HandlerFunc {
-	return func(c *gin.Context) {
-		file := c.Param("file")
-		filePath, err := usecases.GetImageLarge(file)
-		if err != nil {
-			panic(err)
-		}
-
-		c.File(filePath)
-	}
-}
-
-// ImageHandlerVeryLarge is use
-func ImageHandlerVeryLarge() gin.HandlerFunc {
-	return func(c *gin.Context) {
-		file := c.Param("file")
-		filePath, err := usecases.GetImageVeryLarge(file)
-		if err != nil {
-			panic(err)
+		switch quality {
+		case VerySmallQuality:
+			filePath, _ = usecases.GetImageVerySmall(file)
+		case SmallQuality:
+			filePath, _ = usecases.GetImageSmall(file)
+		case MediumQuality:
+			filePath, _ = usecases.GetImageMedium(file)
+		case LargeQuality:
+			filePath, _ = usecases.GetImageLarge(file)
+		case VeryLargeQuality:
+			filePath, _ = usecases.GetImageVeryLarge(file)
+		case Original:
+			filePath, _ = usecases.GetFile(file, "image")
+		default:
+			c.Data(http.StatusNotFound, "Not Found", []byte("404 Not Found"))
+			return
 		}
 
 		c.File(filePath)
