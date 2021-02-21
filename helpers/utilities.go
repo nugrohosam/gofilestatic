@@ -12,6 +12,7 @@ import (
 	"mime/multipart"
 	"os"
 	"path/filepath"
+	"strings"
 
 	"github.com/google/uuid"
 	"github.com/spf13/viper"
@@ -145,25 +146,23 @@ func GetFileFromCache(filePath string) ([]byte, error) {
 
 // SetPath ..
 func SetPath(paths ...string) string {
-
-	setPath := ""
-	for _, path := range paths {
-		setPath += "/" + path
-	}
-
-	return filepath.ToSlash(setPath)
+	return strings.Join(paths, "/")
 }
 
 // StoreImage ..
 func StoreImage(file []byte, filePath string) error {
 
-	storageUse := viper.GetString("image.driver")
-	rootPathUse := viper.GetString("image.root-path")
+	storageUse := viper.GetString("storage.driver")
+	rootPathUse := viper.GetString("storage.root-path")
 	var err error
 
 	switch storageUse {
 	case StorageLocal:
 		path := SetPath(rootPathUse, filePath)
+
+		folderOfFile := filepath.Dir(path)
+		FolderCheckAndCreate(folderOfFile)
+
 		err = ioutil.WriteFile(path, file, 0755)
 	case StorageGoogle:
 	case StorageAws:
@@ -174,12 +173,32 @@ func StoreImage(file []byte, filePath string) error {
 
 // GetSecret ..
 func GetSecret(typeFile, ext string) string {
-	secretImage := viper.GetString("file-secret." + typeFile + "." + ext)
+	secretImage := viper.GetString("file-secret." + typeFile + ext)
 	if secretImage == "" {
 		secretImage = viper.GetString("file-secret.other")
 	}
 
 	return secretImage
+}
+
+// GetFileDataStorage ..
+func GetFileDataStorage(filePath string) []byte {
+
+	storageUse := viper.GetString("storage.driver")
+	rootPathUse := viper.GetString("storage.root-path")
+
+	switch storageUse {
+	case StorageLocal:
+		filePathStorage := SetPath(rootPathUse, filePath)
+		fileData, _ := ioutil.ReadFile(filePathStorage)
+		return fileData
+	case StorageGoogle:
+		return nil
+	case StorageAws:
+		return nil
+	default:
+		return nil
+	}
 }
 
 // RandomString ..
@@ -246,5 +265,13 @@ func SaveFileRequest(file *multipart.FileHeader) (string, error) {
 func MakeNameFile(typeFile, ext string) string {
 	secretFile := GetSecret("image", ext)
 	uuidRandomString := uuid.MustParse(secretFile).String()
-	return uuidRandomString + "." + ext
+	return uuidRandomString + ext
+}
+
+// FolderCheckAndCreate ..
+func FolderCheckAndCreate(folderPath string) {
+	info, err := os.Stat(folderPath)
+	if !(os.IsExist(err) && info.Mode().IsDir() && info.Mode().IsRegular()) {
+		os.MkdirAll(folderPath, os.ModePerm)
+	}
 }

@@ -44,5 +44,9 @@ func Prepare() {
 	{
 		image.POST("", controllers.ImageHandlerUpload())
 		image.GET("very-small/:file", controllers.ImageHandlerVerySmall())
+		image.GET("small/:file", controllers.ImageHandlerSmall())
+		image.GET("medium/:file", controllers.ImageHandlerMedium())
+		image.GET("large/:file", controllers.ImageHandlerLarge())
+		image.GET("very-large/:file", controllers.ImageHandlerVeryLarge())
 	}
 }
