@@ -46,8 +46,8 @@ const SmallQuality = "small"
 // VerySmallQuality ..
 const VerySmallQuality = "very-small"
 
-// ImageHandlerVerySmall is use
-func ImageHandlerVerySmall() gin.HandlerFunc {
+// ImageHandler is use
+func ImageHandler() gin.HandlerFunc {
 		file := c.Param("file")
 		quality := c.Param("quality")
 
