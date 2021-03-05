@@ -4,6 +4,7 @@ go 1.15
 
 require (
 	github.com/adelowo/filer v0.0.0-20190123170101-e31cc931ac97
+	github.com/fatih/structs v1.1.0
 	github.com/getsentry/sentry-go v0.9.0
 	github.com/gin-gonic/gin v1.6.3
 	github.com/go-errors/errors v1.0.1

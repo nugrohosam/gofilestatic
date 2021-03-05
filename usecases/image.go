@@ -8,47 +8,12 @@ import (
 	"github.com/spf13/viper"
 )
 
-// LargeQuality ..
-const LargeQuality = "large"
-
-// VeryLargeQuality ..
-const VeryLargeQuality = "very-large"
-
-// MediumQuality ..
-const MediumQuality = "medium"
-
-// SmallQuality ..
-const SmallQuality = "small"
-
-// VerySmallQuality ..
-const VerySmallQuality = "very-small"
-
-// GetImageVerySmall ..
-func GetImageVerySmall(fileNameEncrypted string) (string, error) {
-	return getImage(VerySmallQuality, fileNameEncrypted)
+// GetImageSpecificQuality ..
+func GetImageSpecificQuality(fileNameEncrypted, quality string) (string, error) {
+	return get(quality, fileNameEncrypted)
 }
 
-// GetImageSmall ..
-func GetImageSmall(fileNameEncrypted string) (string, error) {
-	return getImage(SmallQuality, fileNameEncrypted)
-}
-
-// GetImageMedium ..
-func GetImageMedium(fileNameEncrypted string) (string, error) {
-	return getImage(MediumQuality, fileNameEncrypted)
-}
-
-// GetImageLarge ..
-func GetImageLarge(fileNameEncrypted string) (string, error) {
-	return getImage(LargeQuality, fileNameEncrypted)
-}
-
-// GetImageVeryLarge ..
-func GetImageVeryLarge(fileNameEncrypted string) (string, error) {
-	return getImage(VeryLargeQuality, fileNameEncrypted)
-}
-
-func getImage(quality, fileNameEncrypted string) (string, error) {
+func get(quality, fileNameEncrypted string) (string, error) {
 
 	prefixCachePath := viper.GetString("quality.image." + quality + ".prefix")
 	var err error
@@ -68,15 +33,15 @@ func getImage(quality, fileNameEncrypted string) (string, error) {
 		fileData := helpers.GetFileDataStorage(pathFile)
 
 		switch quality {
-		case VerySmallQuality:
+		case IMAGE_VERY_SMALL_QUALITY:
 			infrastructure.MakeImageVerySmall(fileData, fileFullPathCache)
-		case SmallQuality:
+		case IMAGE_SMALL_QUALITY:
 			infrastructure.MakeImageSmall(fileData, fileFullPathCache)
-		case MediumQuality:
+		case IMAGE_MEDIUM_QUALITY:
 			infrastructure.MakeImageMedium(fileData, fileFullPathCache)
-		case LargeQuality:
+		case IMAGE_LARGE_QUALITY:
 			infrastructure.MakeImageLarge(fileData, fileFullPathCache)
-		case VeryLargeQuality:
+		case IMAGE_VERY_LARGE_QUALITY:
 			infrastructure.MakeImageVeryLarge(fileData, fileFullPathCache)
 		default:
 			return "", err

@@ -28,24 +28,6 @@ func ImageHandlerUpload() gin.HandlerFunc {
 	}
 }
 
-// LargeQuality ..
-const LargeQuality = "large"
-
-// LargeQuality ..
-const Original = "original"
-
-// VeryLargeQuality ..
-const VeryLargeQuality = "very-large"
-
-// MediumQuality ..
-const MediumQuality = "medium"
-
-// SmallQuality ..
-const SmallQuality = "small"
-
-// VerySmallQuality ..
-const VerySmallQuality = "very-small"
-
 // ImageHandler is use
 func ImageHandler() gin.HandlerFunc {
 		file := c.Param("file")
@@ -53,20 +35,13 @@ func ImageHandler() gin.HandlerFunc {
 
 		var filePath string
 
-		switch quality {
-		case VerySmallQuality:
-			filePath, _ = usecases.GetImageVerySmall(file)
-		case SmallQuality:
-			filePath, _ = usecases.GetImageSmall(file)
-		case MediumQuality:
-			filePath, _ = usecases.GetImageMedium(file)
-		case LargeQuality:
-			filePath, _ = usecases.GetImageLarge(file)
-		case VeryLargeQuality:
-			filePath, _ = usecases.GetImageVeryLarge(file)
-		case Original:
-			filePath, _ = usecases.GetFile(file, "image")
-		default:
+		if helpers.inArray(quality, helpers.IMAGE_QUALITIES) {
+			if quality == helpers.IMAGE_ORIGINAL {	
+				filePath, _ = usecases.GetFile(file, "image")
+			} else {
+				filePath, _ = usecases.GetImageSpecificQuality(file, quality)
+			}
+		} else {
 			c.Data(http.StatusNotFound, "Not Found", []byte("404 Not Found"))
 			return
 		}

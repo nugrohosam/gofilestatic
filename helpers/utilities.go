@@ -12,6 +12,7 @@ import (
 	"mime/multipart"
 	"os"
 	"path/filepath"
+	"reflect"
 	"strings"
 
 	"github.com/google/uuid"
@@ -19,6 +20,9 @@ import (
 )
 
 const modeCopyFile = "755"
+
+// MaxDepth ..
+const MaxDepth = 32
 
 // Encrypt ..
 func Encrypt(stringToEncrypt string, keyString string) (encryptedString string) {
@@ -53,6 +57,29 @@ func Encrypt(stringToEncrypt string, keyString string) (encryptedString string) 
 	//Since we don't want to save the nonce somewhere else in this case, we add it as a prefix to the encrypted data. The first nonce argument in Seal is the prefix.
 	ciphertext := aesGCM.Seal(nonce, nonce, plaintext, nil)
 	return fmt.Sprintf("%x", ciphertext)
+}
+
+// MergeMap ...
+func MergeMap(dst, src map[string]interface{}) map[string]interface{} {
+	return merge(dst, src, 0)
+}
+
+// merge
+func merge(dst, src map[string]interface{}, depth int) map[string]interface{} {
+	if depth > MaxDepth {
+		panic("too deep!")
+	}
+	for key, srcVal := range src {
+		if dstVal, ok := dst[key]; ok {
+			srcMap, srcMapOk := mapify(srcVal)
+			dstMap, dstMapOk := mapify(dstVal)
+			if srcMapOk && dstMapOk {
+				srcVal = merge(dstMap, srcMap, depth+1)
+			}
+		}
+		dst[key] = srcVal
+	}
+	return dst
 }
 
 // Decrypt ..
@@ -158,10 +185,10 @@ func StoragePath(filePath string) string {
 	var path string
 
 	switch storageUse {
-	case StorageLocal:
+	case STORAGE_LOCAL:
 		path = SetPath(rootPathUse, filePath)
-	case StorageGoogle:
-	case StorageAws:
+	case STORAGE_GOOGLE:
+	case STORAGE_AWS:
 	}
 
 	return path
@@ -176,10 +203,10 @@ func CachePath(filePath string) string {
 	var path string
 
 	switch storageUse {
-	case StorageLocal:
+	case STORAGE_LOCAL:
 		path = SetPath(rootPathUse, filePath)
-	case StorageGoogle:
-	case StorageAws:
+	case STORAGE_GOOGLE:
+	case STORAGE_AWS:
 	}
 
 	return path
@@ -240,13 +267,13 @@ func GetFileDataStorage(filePath string) []byte {
 	rootPathUse := viper.GetString("storage.root-path")
 
 	switch storageUse {
-	case StorageLocal:
+	case STORAGE_LOCAL:
 		filePathStorage := SetPath(rootPathUse, filePath)
 		fileData, _ := ioutil.ReadFile(filePathStorage)
 		return fileData
-	case StorageGoogle:
+	case STORAGE_GOOGLE:
 		return nil
-	case StorageAws:
+	case STORAGE_AWS:
 		return nil
 	default:
 		return nil
@@ -336,4 +363,16 @@ func ReadMultipartFile(file *multipart.FileHeader) multipart.File {
 	}
 
 	return fileOpenned
+}
+
+func mapify(i interface{}) (map[string]interface{}, bool) {
+	value := reflect.ValueOf(i)
+	if value.Kind() == reflect.Map {
+		m := map[string]interface{}{}
+		for _, k := range value.MapKeys() {
+			m[k.String()] = value.MapIndex(k).Interface()
+		}
+		return m, true
+	}
+	return map[string]interface{}{}, false
 }
