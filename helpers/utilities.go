@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"io"
 	"io/ioutil"
+	"mime/multipart"
 	"os"
 	"path/filepath"
 
@@ -94,11 +95,11 @@ func GetFileFromStorage(filePath string) ([]byte, error) {
 	var err error
 
 	switch storageUse {
-	case StorageLocal:
+	case STORAGE_LOCAL:
 		path := SetPath(rootPathUse, filePath)
 		data, err = ioutil.ReadFile(path)
-	case StorageGoogle:
-	case StorageAws:
+	case STORAGE_GOOGLE:
+	case STORAGE_AWS:
 	}
 
 	return data, err
@@ -112,11 +113,11 @@ func DuplicateToCache(fileToCopy []byte, filePath string) error {
 	var err error
 
 	switch storageUse {
-	case StorageLocal:
+	case STORAGE_LOCAL:
 		path := SetPath(rootPathUse, filePath)
 		err = ioutil.WriteFile(path, fileToCopy, os.ModeTemporary)
-	case StorageGoogle:
-	case StorageAws:
+	case STORAGE_GOOGLE:
+	case STORAGE_AWS:
 	}
 
 	return err
@@ -131,11 +132,11 @@ func GetFileFromCache(filePath string) ([]byte, error) {
 	var err error
 
 	switch storageUse {
-	case StorageLocal:
+	case STORAGE_LOCAL:
 		path := SetPath(rootPathUse, filePath)
 		data, err = ioutil.ReadFile(path)
-	case StorageGoogle:
-	case StorageAws:
+	case STORAGE_GOOGLE:
+	case STORAGE_AWS:
 	}
 
 	return data, err
@@ -160,11 +161,11 @@ func StoreImage(file []byte, filePath string) error {
 	var err error
 
 	switch storageUse {
-	case StorageLocal:
+	case STORAGE_LOCAL:
 		path := SetPath(rootPathUse, filePath)
 		err = ioutil.WriteFile(path, file, 0755)
-	case StorageGoogle:
-	case StorageAws:
+	case STORAGE_GOOGLE:
+	case STORAGE_AWS:
 	}
 
 	return err
@@ -180,11 +181,19 @@ func GetSecret(typeFile, ext string) string {
 	return secretImage
 }
 
+// MakeNameFile ..
 func MakeNameFile(typeFile, ext string) string {
-
 	secretFile := GetSecret("image", ext)
-
 	uuidRandomString := uuid.MustParse(secretFile).String()
-
 	return uuidRandomString + "." + ext
+}
+
+// ReadMultipartFile ..
+func ReadMultipartFile(file *multipart.FileHeader) multipart.File {
+	fileOpenned, err := file.Open()
+	if err != nil {
+		return fileOpenned
+	}
+
+	return fileOpenned
 }

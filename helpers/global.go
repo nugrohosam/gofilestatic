@@ -1,10 +1,10 @@
 package helpers
 
-// StorageLocal ..
-const StorageLocal = "local"
+// STORAGE_LOCAL ..
+const STORAGE_LOCAL = "local"
 
-// StorageAws ..
-const StorageAws = "aws"
+// STORAGE_AWS ..
+const STORAGE_AWS = "aws"
 
-// StorageGoogle ..
-const StorageGoogle = "google"
+// STORAGE_GOOGLE ..
+const STORAGE_GOOGLE = "google"
