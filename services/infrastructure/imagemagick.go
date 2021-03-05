@@ -1,44 +1,14 @@
 package infrastructure
 
 import (
+	"fmt"
 	"io/ioutil"
 	"os"
 	"path/filepath"
 
 	"github.com/nugrohosam/gofilestatic/helpers"
-	"github.com/spf13/viper"
 	"gopkg.in/gographics/imagick.v3/imagick"
 )
-
-// MakeImageVerySmall ..
-func MakeImageVerySmall(fileBlob []byte, filePathDestination string) {
-	quality := viper.GetUint("quality.image.very-small.compression")
-	CreateImageFormBlob(quality, fileBlob, filePathDestination)
-}
-
-// MakeImageSmall ..
-func MakeImageSmall(fileBlob []byte, filePathDestination string) {
-	quality := viper.GetUint("quality.image.small.compression")
-	CreateImageFormBlob(quality, fileBlob, filePathDestination)
-}
-
-// MakeImageMedium ..
-func MakeImageMedium(fileBlob []byte, filePathDestination string) {
-	quality := viper.GetUint("quality.image.medium.compression")
-	CreateImageFormBlob(quality, fileBlob, filePathDestination)
-}
-
-// MakeImageLarge ..
-func MakeImageLarge(fileBlob []byte, filePathDestination string) {
-	quality := viper.GetUint("quality.image.large.compression")
-	CreateImageFormBlob(quality, fileBlob, filePathDestination)
-}
-
-// MakeImageVeryLarge ..
-func MakeImageVeryLarge(fileBlob []byte, filePathDestination string) {
-	quality := viper.GetUint("quality.image.very-large.compression")
-	CreateImageFormBlob(quality, fileBlob, filePathDestination)
-}
 
 // CreateImage ..
 func CreateImage(quality uint, filePath, filePathDestination string) {
@@ -46,6 +16,8 @@ func CreateImage(quality uint, filePath, filePathDestination string) {
 	defer imagick.Terminate()
 
 	mw := imagick.NewMagickWand()
+	defer mw.Destroy()
+
 	mw.ReadImage(filePath)
 	mw.SetCompressionQuality(quality)
 	fileDataCompressed := mw.GetImageBlob()
@@ -56,14 +28,25 @@ func CreateImage(quality uint, filePath, filePathDestination string) {
 	ioutil.WriteFile(filePathDestination, fileDataCompressed, 0744)
 }
 
-// CreateImageFormBlob ..
-func CreateImageFormBlob(quality uint, file []byte, filePathDestination string) {
+// CreateImageFromBlob ..
+func CreateImageFromBlob(quality uint, sizePrecentage uint, file []byte, filePathDestination string) {
 	imagick.Initialize()
 	defer imagick.Terminate()
 
 	mw := imagick.NewMagickWand()
+	defer mw.Destroy()
+
 	mw.ReadImageBlob(file)
+
+	sizedWidthFromPercentage := mw.GetImageWidth() * sizePrecentage / 100
+	sizedHeightFromPercentage := mw.GetImageHeight() * sizePrecentage / 100
+
+	fmt.Println(mw.GetImageWidth(), mw.GetImageHeight())
+	fmt.Println(sizedWidthFromPercentage, sizedHeightFromPercentage)
+
 	mw.SetCompressionQuality(quality)
+	mw.SetSize(sizedWidthFromPercentage, sizedHeightFromPercentage)
+
 	fileDataCompressed := mw.GetImageBlob()
 
 	folderOfFile := filepath.Dir(filePathDestination)

@@ -8,6 +8,18 @@ import (
 	"github.com/thedevsaddam/govalidator"
 )
 
+// ShouldBeType ..
+type ShouldBeType struct {
+	Key      string
+	Function func(string) govalidator.Options
+}
+
+// ValidateShouldBeString ...
+var ValidateShouldBeString = ShouldBeType{
+	Key:      "should-be-string",
+	Function: ImageValidation,
+}
+
 // ImageValidation ..
 func ImageValidation(attribute string) govalidator.Options {
 	allowedFileExt := viper.GetStringSlice("rules.image.allowed-type")

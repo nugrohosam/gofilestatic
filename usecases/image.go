@@ -1,6 +1,7 @@
 package usecases
 
 import (
+	"fmt"
 	"path/filepath"
 
 	"github.com/nugrohosam/gofilestatic/helpers"
@@ -32,18 +33,13 @@ func get(quality, fileNameEncrypted string) (string, error) {
 		pathFile := helpers.Decrypt(fileNameEncrypted, secretImage)
 		fileData := helpers.GetFileDataStorage(pathFile)
 
-		switch quality {
-		case IMAGE_VERY_SMALL_QUALITY:
-			infrastructure.MakeImageVerySmall(fileData, fileFullPathCache)
-		case IMAGE_SMALL_QUALITY:
-			infrastructure.MakeImageSmall(fileData, fileFullPathCache)
-		case IMAGE_MEDIUM_QUALITY:
-			infrastructure.MakeImageMedium(fileData, fileFullPathCache)
-		case IMAGE_LARGE_QUALITY:
-			infrastructure.MakeImageLarge(fileData, fileFullPathCache)
-		case IMAGE_VERY_LARGE_QUALITY:
-			infrastructure.MakeImageVeryLarge(fileData, fileFullPathCache)
-		default:
+		if helpers.InArray(quality, helpers.IMAGE_QUALITIES) {
+			qualityCompression := viper.GetInt("quality.image." + quality + ".compression")
+			sizePercentage := viper.GetInt("quality.image." + quality + ".size-percentage")
+			fmt.Println(qualityCompression)
+			fmt.Println(sizePercentage)
+			infrastructure.CreateImageFromBlob(uint(qualityCompression), uint(sizePercentage), fileData, fileFullPathCache)
+		} else {
 			return "", err
 		}
 	}
