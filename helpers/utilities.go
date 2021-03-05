@@ -8,9 +8,11 @@ import (
 	"fmt"
 	"io"
 	"io/ioutil"
+	mathRand "math/rand"
 	"mime/multipart"
 	"os"
 	"path/filepath"
+	"strings"
 
 	"github.com/google/uuid"
 	"github.com/spf13/viper"
@@ -144,25 +146,59 @@ func GetFileFromCache(filePath string) ([]byte, error) {
 
 // SetPath ..
 func SetPath(paths ...string) string {
-
-	setPath := ""
-	for _, path := range paths {
-		setPath += "/" + path
-	}
-
-	return filepath.ToSlash(setPath)
+	return strings.Join(paths, "/")
 }
 
-// StoreImage ..
-func StoreImage(file []byte, filePath string) error {
+// StoragePath ..
+func StoragePath(filePath string) string {
 
-	storageUse := viper.GetString("image.driver")
-	rootPathUse := viper.GetString("image.root-path")
+	storageUse := viper.GetString("storage.driver")
+	rootPathUse := viper.GetString("storage.root-path")
+
+	var path string
+
+	switch storageUse {
+	case StorageLocal:
+		path = SetPath(rootPathUse, filePath)
+	case StorageGoogle:
+	case StorageAws:
+	}
+
+	return path
+}
+
+// CachePath ..
+func CachePath(filePath string) string {
+
+	storageUse := viper.GetString("cache.driver")
+	rootPathUse := viper.GetString("cache.root-path")
+
+	var path string
+
+	switch storageUse {
+	case StorageLocal:
+		path = SetPath(rootPathUse, filePath)
+	case StorageGoogle:
+	case StorageAws:
+	}
+
+	return path
+}
+
+// StoreFile ..
+func StoreFile(file []byte, filePath string) error {
+
+	storageUse := viper.GetString("storage.driver")
+	rootPathUse := viper.GetString("storage.root-path")
 	var err error
 
 	switch storageUse {
 	case STORAGE_LOCAL:
 		path := SetPath(rootPathUse, filePath)
+
+		folderOfFile := filepath.Dir(path)
+		FolderCheckAndCreate(folderOfFile)
+
 		err = ioutil.WriteFile(path, file, 0755)
 	case STORAGE_GOOGLE:
 	case STORAGE_AWS:
@@ -171,9 +207,14 @@ func StoreImage(file []byte, filePath string) error {
 	return err
 }
 
+// StorageMove ..
+func StorageMove(oldLocation, newLocation string) error {
+	return os.Rename(oldLocation, newLocation)
+}
+
 // GetSecret ..
 func GetSecret(typeFile, ext string) string {
-	secretImage := viper.GetString("file-secret." + typeFile + "." + ext)
+	secretImage := viper.GetString("file-secret." + typeFile + ext)
 	if secretImage == "" {
 		secretImage = viper.GetString("file-secret.other")
 	}
@@ -181,11 +222,110 @@ func GetSecret(typeFile, ext string) string {
 	return secretImage
 }
 
+// InArray ..
+func InArray(str string, s []string) bool {
+	for _, value := range s {
+		if fmt.Sprintf("%v", value) == str {
+			return true
+		}
+	}
+
+	return false
+}
+
+// GetFileDataStorage ..
+func GetFileDataStorage(filePath string) []byte {
+
+	storageUse := viper.GetString("storage.driver")
+	rootPathUse := viper.GetString("storage.root-path")
+
+	switch storageUse {
+	case StorageLocal:
+		filePathStorage := SetPath(rootPathUse, filePath)
+		fileData, _ := ioutil.ReadFile(filePathStorage)
+		return fileData
+	case StorageGoogle:
+		return nil
+	case StorageAws:
+		return nil
+	default:
+		return nil
+	}
+}
+
+// RandomString ..
+func RandomString(n int) string {
+	letterRunes := []rune("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ")
+
+	b := make([]rune, n)
+	for i := range b {
+		b[i] = letterRunes[mathRand.Intn(len(letterRunes))]
+	}
+
+	return string(b)
+}
+
+// ReadFileRequest ..
+func ReadFileRequest(file *multipart.FileHeader) ([]byte, error) {
+	src, err := file.Open()
+	if err != nil {
+		return nil, err
+	}
+	defer src.Close()
+
+	dst := viper.GetString("temp.root-path") + "/" + RandomString(5)
+	os.Mkdir(dst, 0755)
+
+	filePath := dst + "/" + file.Filename
+
+	out, err := os.Create(filePath)
+	if err != nil {
+		return nil, err
+	}
+	defer out.Close()
+
+	_, err = io.Copy(out, src)
+
+	return ioutil.ReadFile(filePath)
+}
+
+// SaveFileRequest ..
+func SaveFileRequest(file *multipart.FileHeader) (string, error) {
+	src, err := file.Open()
+	if err != nil {
+		return "", err
+	}
+	defer src.Close()
+
+	dst := viper.GetString("temp.root-path") + "/" + RandomString(5)
+	os.Mkdir(dst, 0755)
+
+	filePath := dst + "/" + file.Filename
+
+	out, err := os.Create(filePath)
+	if err != nil {
+		return "", err
+	}
+	defer out.Close()
+
+	_, err = io.Copy(out, src)
+
+	return filePath, nil
+}
+
 // MakeNameFile ..
 func MakeNameFile(typeFile, ext string) string {
 	secretFile := GetSecret("image", ext)
 	uuidRandomString := uuid.MustParse(secretFile).String()
-	return uuidRandomString + "." + ext
+	return uuidRandomString + ext
+}
+
+// FolderCheckAndCreate ..
+func FolderCheckAndCreate(folderPath string) {
+	info, err := os.Stat(folderPath)
+	if !(os.IsExist(err) && info.Mode().IsDir() && info.Mode().IsRegular()) {
+		os.MkdirAll(folderPath, os.ModePerm)
+	}
 }
 
 // ReadMultipartFile ..

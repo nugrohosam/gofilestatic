@@ -2,47 +2,84 @@ package usecases
 
 import (
 	"path/filepath"
-	"strings"
 
 	"github.com/nugrohosam/gofilestatic/helpers"
 	"github.com/nugrohosam/gofilestatic/services/infrastructure"
 	"github.com/spf13/viper"
 )
 
-// StoreImage ..
-func StoreImage(file []byte, filePathRequsted, fileName string) error {
-	ext := filepath.Ext(fileName)
-	randomFileName := helpers.MakeNameFile(filePathRequsted, ext)
-	filePath := helpers.SetPath(filePathRequsted, randomFileName)
+// LargeQuality ..
+const LargeQuality = "large"
 
-	secretImage := helpers.GetSecret("image", ext)
+// VeryLargeQuality ..
+const VeryLargeQuality = "very-large"
 
-	helpers.Encrypt(filePath, secretImage)
-	return helpers.StoreImage(file, filePath)
+// MediumQuality ..
+const MediumQuality = "medium"
+
+// SmallQuality ..
+const SmallQuality = "small"
+
+// VerySmallQuality ..
+const VerySmallQuality = "very-small"
+
+// GetImageVerySmall ..
+func GetImageVerySmall(fileNameEncrypted string) (string, error) {
+	return getImage(VerySmallQuality, fileNameEncrypted)
 }
 
 // GetImageSmall ..
-func GetImageSmall(fileNameEncrypted string) ([]byte, error) {
+func GetImageSmall(fileNameEncrypted string) (string, error) {
+	return getImage(SmallQuality, fileNameEncrypted)
+}
 
-	prefixCachePath := viper.GetString("quality.image.very-small.prefix")
+// GetImageMedium ..
+func GetImageMedium(fileNameEncrypted string) (string, error) {
+	return getImage(MediumQuality, fileNameEncrypted)
+}
 
-	var fileData []byte
+// GetImageLarge ..
+func GetImageLarge(fileNameEncrypted string) (string, error) {
+	return getImage(LargeQuality, fileNameEncrypted)
+}
+
+// GetImageVeryLarge ..
+func GetImageVeryLarge(fileNameEncrypted string) (string, error) {
+	return getImage(VeryLargeQuality, fileNameEncrypted)
+}
+
+func getImage(quality, fileNameEncrypted string) (string, error) {
+
+	prefixCachePath := viper.GetString("quality.image." + quality + ".prefix")
 	var err error
-	fileData, err = helpers.GetFileFromCache(prefixCachePath + fileNameEncrypted)
-	if err == nil {
-		return fileData, nil
+
+	for {
+		filePathCache := prefixCachePath + fileNameEncrypted
+		fileFullPathCache := helpers.CachePath(filePathCache)
+
+		_, err = helpers.GetFileFromCache(filePathCache)
+		if err == nil {
+			return fileFullPathCache, nil
+		}
+
+		ext := filepath.Ext(fileNameEncrypted)
+		secretImage := helpers.GetSecret("image", ext)
+		pathFile := helpers.Decrypt(fileNameEncrypted, secretImage)
+		fileData := helpers.GetFileDataStorage(pathFile)
+
+		switch quality {
+		case VerySmallQuality:
+			infrastructure.MakeImageVerySmall(fileData, fileFullPathCache)
+		case SmallQuality:
+			infrastructure.MakeImageSmall(fileData, fileFullPathCache)
+		case MediumQuality:
+			infrastructure.MakeImageMedium(fileData, fileFullPathCache)
+		case LargeQuality:
+			infrastructure.MakeImageLarge(fileData, fileFullPathCache)
+		case VeryLargeQuality:
+			infrastructure.MakeImageVeryLarge(fileData, fileFullPathCache)
+		default:
+			return "", err
+		}
 	}
-
-	ext := filepath.Ext(fileNameEncrypted)
-	filename := strings.ReplaceAll(fileNameEncrypted, ext, "")
-
-	secretImage := helpers.GetSecret("image", ext)
-
-	path := helpers.Decrypt(filename, secretImage)
-
-	fileorgin := path + "." + ext
-	filePathCache := prefixCachePath + fileNameEncrypted
-	infrastructure.MakeImageVerySmall(fileorgin, filePathCache)
-
-	return fileData, err
 }
