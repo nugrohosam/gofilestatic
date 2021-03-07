@@ -10,6 +10,12 @@ before_install:
   - make install
   - ldconfig /usr/local/lib
   - magick -version
+  - wget https://github.com/libvips/libvips/releases/download/v8.10.6-beta/vips-8.10.6.tar.gz
+  - tar xvzf vips-8.10.6.tar.gz && cd vips-8.10.6
+  - ./configure
+  - make
+  - make install
+  - vips
 
 addons:
   ssh_known_hosts:
@@ -19,7 +25,6 @@ addons:
       - ssh
       - sshpass
       - rsync
-      - vips
 
 before_script:
   - cp deploy/domainesia/.gitignore.domainesia .gitignore
