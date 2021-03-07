@@ -2,18 +2,36 @@ language: go
 go:
   - "1.15"
 
+before_install:
+  - wget https://www.imagemagick.org/download/ImageMagick.tar.gz
+  - tar xvzf ImageMagick.tar.gz && cd ImageMagick-7.0.8-26
+  - ./configure
+  - make
+  - make install
+  - ldconfig /usr/local/lib
+  - magick -version
+
 addons:
-  ssh_known_hosts: 
-    - 192.53.174.157
+  ssh_known_hosts:
+    - nugrohosamiyono.com:64000
   apt:
     packages:
-    - imagick
-    - vips
-    - rsync
+      - ssh
+      - sshpass
+      - rsync
+      - vips
+
+before_script:
+  - cp deploy/domainesia/.gitignore.domainesia .gitignore
+  - cp deploy/domainesia/script.sh.domainesia deploy/domainesia/script.sh  
+  - chmod +x deploy/domainesia/script.sh
+  - cp deploy/domainesia/restart-app.sh.domainesia deploy/domainesia/restart-app.sh  
+  - chmod +x deploy/domainesia/restart-app.sh
+  - rm -rf .git
 
 deploy:
   provider: script
-  skip_cleanup: true
-  script: rsync -avHPe "sshpass -p$DOMAINESIA_SSH_PASSWORD ssh -p$DOMAINESIA_SSH_PORT" ./ $DOMAINESIA_SSH_USER@$DOMAINESIA_SSH_HOST:/home/nugroho2/playground/gofilestatic
+  cleanup: false
+  script: bash deploy/domainesia/script.sh
   on:
     branch: master
