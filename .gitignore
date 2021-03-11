@@ -1,5 +1,5 @@
 .env.yaml
 .env.test.yaml
 storage/*
-temp/*
+tmp/*
 cache/*

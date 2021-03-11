@@ -10,8 +10,8 @@ before_install:
   - make install
   - ldconfig /usr/local/lib
   - magick -version
-  - wget https://github.com/libvips/libvips/releases/download/v8.10.6-beta/vips-8.10.6.tar.gz
-  - tar xvzf vips-8.10.6.tar.gz && cd vips-8.10.6
+  - wget https://github.com/libvips/libvips/releases/download/v8.10.5/vips-8.10.5.tar.gz
+  - tar xvzf vips-8.10.5.tar.gz && cd vips-8.10.5
   - ./configure
   - make
   - make install
